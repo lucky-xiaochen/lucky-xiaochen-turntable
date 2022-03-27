@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幸运大转盘</title>
+    <style>
+        #wheel {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin-left: -300px;
+            margin-top: -300px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="wheel" width="600" height="600"></canvas>
+
+    <script>
+        (function(){
+            // 定义转盘区域内容
+            var groupNames = ['一杯奶茶', '蟹蟹惠顾', '返现2元', '蟹蟹惠顾', '学猫叫', '返现5元'];
+            var num = groupNames.length;
+
+            // 获取 canvas 元素
+            var canvas = document.querySelector('#wheel');
+            // 获取绘图上下文
+            var ctx = canvas.getContext('2d');
+
+            // 定义起始转动角度
+            var ang = 30;
+
+            // 定义定时器标记
+            var intervalId = null;
+
+            // 初始化绘制
+            drawWheel();
+
+            // 点击开始转动
+            canvas.onclick = function(){
+                // 如果定时正在进行，直接不进行定时
+                if (intervalId) {
+                    return;
+                }
+
+                // 定义当前时间
+                var t = 0;
+                // 定义起始转动角度
+                var b = ang;
+                // 定义变化的转动角度 随机 1080 ~ 1420
+                var c = 1080 + Math.floor(Math.random() * 360); 
+                // 定义持续时间 随机 3000 ~ 4000
+                var d = 20000 + Math.floor(Math.random() * 1000);
+
+                // 开启定时
+                intervalId = setInterval(function(){
+                    // 当前时间变化
+                    t += 10; 
+                    // 计算每次转动的角度
+                    ang = quartEaseOut(t, b, c, d);
+                   
+                    // 绘制
+                    drawWheel();
+
+                    // 判断时间停止
+                    if (t >= d) {
+                        clearInterval(intervalId);
+                        intervalId = null;
+                    }
+                }, 10);    
+            }
+
+
+            function drawWheel(){
+                ctx.clearRect(0, 0, 600, 600);
+                ctx.save();
+                    ctx.translate(300, 300);
+
+                    ctx.save();
+                        // 转盘转动
+                        ctx.rotate((ang / 180 * Math.PI));
+
+                        // 绘制圆盘
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 285, 0, 360/180*Math.PI, false);
+                        ctx.lineWidth = 30;
+                        ctx.strokeStyle = '#B22328';
+                        ctx.stroke();
+
+                        // 绘制圆盘上的小圆点
+                        for (var i = 0; i < 20; i ++) {
+                            ctx.save();
+                            var angle = i * 18 / 180 * Math.PI;
+                            var cx = 285 * Math.cos(angle);
+                            var cy = - 285 * Math.sin(angle);
+                            ctx.beginPath();
+                            ctx.arc(cx, cy, 10, 0, 360/180*Math.PI, false);
+                            ctx.fillStyle = i%2 ? '#EDD73B' : '#FFF';
+                            ctx.fill();
+                            ctx.restore();
+                        }
+
+
+                        //划分扇形区域
+                        for (var i = 0; i < num; i ++) {
+                            ctx.save();
+                            ctx.translate(0, 0);
+                            ctx.rotate(i * 2 * Math.PI / num);
+                            ctx.beginPath();
+                            ctx.moveTo(0, 0);
+                            ctx.arc(0, 0, 270, 0 ,2 * Math.PI / num, false);
+                            ctx.fillStyle = i % 2 ? '#EAC892' : '#F7E2BE';
+                            ctx.fill();
+
+                                ctx.save();
+                                    ctx.rotate( (180 / num + 90) / 180 * Math.PI )
+                                    ctx.fillStyle = i % 2 ? '#C44239' : '#C75151';
+                                    ctx.textAlign = 'center';
+                                    ctx.font = '40px Microsoft YaHei';
+                                    ctx.fillText(groupNames[i], 0, -170)
+                                ctx.restore();
+
+                            ctx.restore();
+                        }
+                    ctx.restore();
+                
+
+                    // 绘制三角形箭头右边
+                    ctx.beginPath();
+                    ctx.moveTo(0, -140);
+                    ctx.lineTo(0, -40);
+                    ctx.lineTo(40, -40);
+                    ctx.fillStyle = '#E7BD68';
+                    ctx.fill();
+                    // 绘制三角形箭头左边
+                    ctx.beginPath();
+                    ctx.moveTo(0, -140);
+                    ctx.lineTo(0, -40);
+                    ctx.lineTo(-40, -40);
+                    ctx.fillStyle = '#EFDC87';
+                    ctx.fill();
+
+                    // 绘制中心区域
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 80, 0, Math.PI * 2, false);
+                    ctx.strokeStyle = '#F3D35E';
+                    ctx.fillStyle = '#9F2A03';
+                    ctx.fill();
+                    ctx.lineWidth = 20;
+                    ctx.stroke();
+
+                    // 绘制文字
+                    ctx.beginPath();
+                    ctx.font = '40px 黑体';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#EFD298';
+                    ctx.fillText('开始', 0, 0);
+                    
+                ctx.restore();
+            }
+
+            // 算法函数
+            function quartEaseOut(t,b,c,d){
+                return c * Math.sqrt(1 - (t=t/d-1)*t) + b;
+            }
+
+        })()
+    </script>
+
+</body>
+</html>
